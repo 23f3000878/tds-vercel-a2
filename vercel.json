@@ -1,8 +1,0 @@
-{
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "functions": {
-    "api/latency.py": {
-      "excludeFiles": "{tests/**,**/test_*.py,data/**}"
-    }
-  }
-}
