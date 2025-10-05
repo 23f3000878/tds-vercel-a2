@@ -1,36 +1,44 @@
-name: CI with Dependency Cache
+name: Caching Dependencies Example
 
+# This workflow runs on pushes to the main branch
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
   build:
+    # Use the latest Ubuntu runner
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Check out your repository code
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.11
-
-      - name: Cache dependencies (cache-10d0889)
-        id: cache-step
+      # 2. Set up caching
+      # This step attempts to restore a cache with the exact key you specified.
+      - name: Cache dependencies
+        id: cache-dependencies # An ID to reference the output of this step
         uses: actions/cache@v4
         with:
-          path: |
-            ~/.cache/pip
-            ~/.virtualenvs
+          # The path to the directory you want to cache (e.g., ~/.npm for npm)
+          path: ~/.npm
+          # The exact key for the cache
           key: cache-10d0889
 
+      # 3. Prime the cache and check the result
+      # This step runs regardless and echoes whether the cache was hit or missed.
       - name: prime-cache-10d0889
-        run: echo "Cache hit"
+        run: echo "Cache hit: ${{ steps.cache-dependencies.outputs.cache-hit }}"
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+      # 4. Install dependencies (example for npm)
+      # This step is conditional. It only runs if the cache was NOT restored.
+      # On the first run, this will execute. On subsequent runs with a valid cache, it will be skipped.
+      - name: Install dependencies if cache missed
+        if: steps.cache-dependencies.outputs.cache-hit != 'true'
+        run: npm install # Replace with your project's install command
+
+      # 5. Run your build or test commands
+      # These steps would use the cached dependencies
+      - name: Run build
+        run: npm run build --if-present # Example build step
